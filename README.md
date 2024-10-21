@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Simple Bill Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,7 +82,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Bill Tracker</h1>
+
         <form id="bill-form">
             <input type="text" id="bill-name" placeholder="Bill Name" required>
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
