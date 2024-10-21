@@ -49,10 +49,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: red; /* Default to red */
+            color: red;
         }
         .bill-item.paid {
-            color: green; /* Change to green when paid */
+            color: green;
         }
         .bill-item span {
             flex-grow: 1;
@@ -85,7 +85,7 @@
         <h1>Bill Tracker</h1>
         <form id="bill-form">
             <input type="text" id="bill-name" placeholder="Bill Name" required>
-            <input type="text" id="bill-amount" placeholder="Amount" required>
+            <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
             <button type="submit">Add Bill</button>
         </form>
@@ -98,8 +98,15 @@
             event.preventDefault();
             
             const billName = document.getElementById('bill-name').value;
-            const billAmount = document.getElementById('bill-amount').value;
+            let billAmount = document.getElementById('bill-amount').value;
             const billDueDate = document.getElementById('bill-due-date').value;
+
+            // Ensure billAmount is a valid number and not an empty string
+            billAmount = parseFloat(billAmount);
+            if (isNaN(billAmount)) {
+                alert("Please enter a valid amount.");
+                return;
+            }
 
             addBill(billName, billAmount, billDueDate);
 
@@ -131,7 +138,7 @@
                 const billItem = document.createElement('div');
                 billItem.className = 'bill-item' + (bill.paid ? ' paid' : '');
                 billItem.innerHTML = `
-                    <span>${bill.name} - ${isNaN(bill.amount) ? bill.amount : '£' + parseFloat(bill.amount).toFixed(2)} - Due: ${bill.dueDate}</span>
+                    <span>${bill.name} - £${parseFloat(bill.amount).toFixed(2)} - Due: ${bill.dueDate}</span>
                     <button onclick="markAsPaid(${index})" class="${bill.paid ? 'paid' : ''}" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
                     <button class="remove" onclick="removeBill(${index})">Remove</button>
                 `;
