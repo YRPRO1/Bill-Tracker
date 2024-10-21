@@ -1,4 +1,3 @@
-# Bill-Tracker
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,6 +72,12 @@
         .bill-item button.remove {
             background-color: #dc3545;
         }
+        .total-amount {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +90,7 @@
             <button type="submit">Add Bill</button>
         </form>
         <div class="bill-list" id="bill-list"></div>
+        <div class="total-amount" id="total-amount">Total: £0.00</div>
     </div>
 
     <script>
@@ -131,6 +137,8 @@
                 `;
                 billList.appendChild(billItem);
             });
+
+            calculateTotal();
         }
 
         function markAsPaid(index) {
@@ -152,6 +160,12 @@
             bills = bills.map(bill => ({ ...bill, paid: false }));
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
+        }
+
+        function calculateTotal() {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            const total = bills.reduce((sum, bill) => sum + parseFloat(bill.amount || 0), 0);
+            document.getElementById('total-amount').textContent = `Total: £${total.toFixed(2)}`;
         }
 
         // Check if it's a new month and reset bills
