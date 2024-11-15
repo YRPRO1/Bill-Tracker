@@ -95,6 +95,22 @@
 
         <div class="bill-list" id="bill-list"></div>
         <div class="total-amount" id="total-amount">Total Bills: £0.00</div>
+
+        <!-- Income Form -->
+        <form id="income-form">
+            <h3>Add Income</h3>
+            <input type="text" id="income-name" placeholder="Income Source" required>
+            <input type="number" id="income-amount" placeholder="Amount" required step="0.01">
+            <button type="submit">Add Income</button>
+        </form>
+
+        <div class="money-in-list" id="money-in-list"></div>
+        <div class="total-amount" id="total-income">Total Income: £0.00</div>
+
+        <!-- Balance Section -->
+        <div class="balance-section" id="balance-section">
+            Remaining Balance: <span id="remaining-balance">£0.00</span>
+        </div>
     </div>
 
     <script>
@@ -127,7 +143,7 @@
             const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
+            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort bills by date
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -184,9 +200,7 @@
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
-    </script>
-</body>
-    <script>
+
         // Income Management
         document.getElementById('income-form').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -223,20 +237,3 @@
                 `;
                 moneyInList.appendChild(incomeItem);
             });
-            calculateTotals();
-        }
-
-        function removeIncome(index) {
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-            incomes.splice(index, 1);
-            localStorage.setItem('incomes', JSON.stringify(incomes));
-            displayIncomes();
-        }
-
-        // Totals and Balance Calculation
-        function calculateTotals() {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-
-            const totalBills = bills.reduce((sum, bill) => sum + (!bill.paid ? bill.amount : 0), 0);
-            const totalIncome = incomes.reduce((
