@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Budget Tracker</title>
+    <title>Budget Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,6 +56,9 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        .bill-item span.amount {
+            color: red;
+        }
         .total-amount {
             margin-top: 20px;
             text-align: center;
@@ -79,7 +82,8 @@
     <div class="container">
         <!-- Form for Adding Bills -->
         <form id="bill-form">
-            <h2>Add Bill</h2>
+            <h2>Budget Tracker</h2>
+            <h3>Add Bill</h3>
             <input type="text" id="bill-name" placeholder="Bill Name" required>
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
@@ -91,7 +95,7 @@
 
         <!-- Form for Adding Income -->
         <form id="income-form">
-            <h2>Add Monthly Income</h2>
+            <h3>Add Monthly Income</h3>
             <input type="text" id="income-name" placeholder="Income Source" required>
             <input type="number" id="income-amount" placeholder="Amount" required step="0.01">
             <input type="month" id="income-month" required>
@@ -141,7 +145,9 @@
                 const billItem = document.createElement('div');
                 billItem.className = 'bill-item';
                 billItem.innerHTML = `
-                    <span>${bill.name} - £${bill.amount.toFixed(2)} - Due: ${bill.dueDate}</span>
+                    <span>${bill.name}</span>
+                    <span class="amount">£${bill.amount.toFixed(2)}</span>
+                    <span>${bill.dueDate}</span>
                     <button onclick="removeBill(${index})">Remove</button>
                 `;
                 billList.appendChild(billItem);
