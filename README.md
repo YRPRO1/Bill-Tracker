@@ -224,14 +224,14 @@
                 // Remove the one-off bill once marked as paid
                 bills.splice(index, 1);
             } else if (bill.recurring) {
-                // For recurring bills, mark as paid and set due date to the next month
-                const nextMonthBill = {
+                // For recurring bills, mark as paid and set a flag to add the next bill only in the new month
+                const nextMonth = getNextMonthDate(bill.dueDate);
+                bills[index] = {
                     ...bill,
-                    paid: false, // Next month should be unpaid
-                    dueDate: getNextMonthDate(bill.dueDate)
+                    dueDate: nextMonth,
+                    paid: true,
+                    nextDue: nextMonth,  // Mark next due date but only add in the new month
                 };
-                bills[index] = bill; // Update current bill as paid
-                bills.push(nextMonthBill); // Add next month’s bill
             }
 
             localStorage.setItem('bills', JSON.stringify(bills));
