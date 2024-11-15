@@ -165,7 +165,6 @@
         }
     </script>
 </body>
-</html>
     <script>
         // Mark a Bill as Paid and Carry it Over to the Next Month
         function markAsPaid(index) {
