@@ -225,4 +225,12 @@
             const incomeMonth = document.getElementById('income-month').value;
 
             if (isNaN(incomeAmount)) {
-                alert("Please enter a valid amount
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            addIncome(incomeName, incomeAmount, incomeMonth);
+            document.getElementById('income-form').reset();
+        });
+
+        function
