@@ -39,11 +39,13 @@
         }
         .checkbox-group {
             display: flex;
-            align-items: center;
+            justify-content: space-between;
             margin: 5px 0;
         }
         .checkbox-group label {
-            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
         }
         .bill-list, .money-in-list {
             margin-top: 20px;
