@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Bill Tracker</title>
+    <title>Simple Budget Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,13 +15,13 @@
             margin: 0;
         }
         .container {
-            width: 300px;
+            width: 350px;
             background: white;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
-        h1 {
+        h1, h2 {
             text-align: center;
         }
         form {
@@ -38,7 +38,7 @@
             border: none;
             cursor: pointer;
         }
-        .bill-list {
+        .bill-list, .money-in-list {
             margin-top: 20px;
             max-height: 300px;
             overflow-y: scroll;
@@ -47,7 +47,7 @@
             border-radius: 4px;
             background: #f9f9f9;
         }
-        .bill-item {
+        .bill-item, .income-item {
             background: #ffffff;
             padding: 10px;
             margin: 5px 0;
@@ -55,32 +55,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: red;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .bill-item.paid {
-            color: green;
-        }
-        .bill-item span {
-            flex-grow: 1;
-        }
-        .bill-item button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 5px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-left: 5px;
-        }
-        .bill-item button.paid {
-            background-color: #28a745;
-        }
-        .bill-item button.remove {
-            background-color: #dc3545;
-        }
-        .bill-item button.edit {
-            background-color: #ffc107;
         }
         .total-amount {
             margin-top: 20px;
@@ -88,26 +63,59 @@
             font-size: 18px;
             font-weight: bold;
         }
+        .balance-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .balance-section span {
+            font-size: 18px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>Budget Tracker</h1>
+
+        <!-- Form for Adding Bills -->
         <form id="bill-form">
+            <h2>Add Bill</h2>
             <input type="text" id="bill-name" placeholder="Bill Name" required>
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
             <button type="submit">Add Bill</button>
         </form>
+
         <div class="bill-list" id="bill-list"></div>
-        <div class="total-amount" id="total-amount">Total: £0.00</div>
+        <div class="total-amount" id="total-amount">Total Bills: £0.00</div>
+
+        <!-- Form for Adding Income -->
+        <form id="income-form">
+            <h2>Add Income</h2>
+            <input type="text" id="income-name" placeholder="Income Source" required>
+            <input type="number" id="income-amount" placeholder="Amount" required step="0.01">
+            <button type="submit">Add Income</button>
+        </form>
+
+        <div class="money-in-list" id="money-in-list"></div>
+        <div class="total-amount" id="total-income">Total Income: £0.00</div>
+
+        <!-- Balance Section -->
+        <div class="balance-section" id="balance-section">
+            Remaining Balance: <span id="remaining-balance">£0.00</span>
+        </div>
     </div>
 
     <script>
         let editingIndex = null; // Track which bill is being edited
 
+        // Event Listener for Adding Bills
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            
+
             const billName = document.getElementById('bill-name').value;
             const billAmount = parseFloat(document.getElementById('bill-amount').value);
             const billDueDate = document.getElementById('bill-due-date').value;
@@ -117,100 +125,40 @@
                 return;
             }
 
-            if (editingIndex !== null) {
-                updateBill(editingIndex, billName, billAmount, billDueDate);
-            } else {
-                addBill(billName, billAmount, billDueDate);
-            }
+            addBill(billName, billAmount, billDueDate);
 
             document.getElementById('bill-form').reset();
             editingIndex = null; // Reset editing index after saving
         });
 
+        // Add Bill
         function addBill(name, amount, dueDate) {
-            const billItem = {
-                name,
-                amount,
-                dueDate,
-                paid: false
-            };
-
+            const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
             bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
             localStorage.setItem('bills', JSON.stringify(bills));
-
             displayBills();
         }
 
-        function updateBill(index, name, amount, dueDate) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            bills[index] = { ...bills[index], name, amount, dueDate }; // Update the bill details
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Re-sort by due date
-            localStorage.setItem('bills', JSON.stringify(bills));
-
-            displayBills();
-        }
-
+        // Display Bills
         function displayBills() {
             const billList = document.getElementById('bill-list');
             billList.innerHTML = '';
-
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.forEach((bill, index) => {
                 const billItem = document.createElement('div');
-                billItem.className = 'bill-item' + (bill.paid ? ' paid' : '');
+                billItem.className = 'bill-item';
                 billItem.innerHTML = `
-                    <span>${bill.name} - £${parseFloat(bill.amount).toFixed(2)} - Due: ${bill.dueDate}</span>
-                    <button onclick="markAsPaid(${index})" class="${bill.paid ? 'paid' : ''}" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
-                    <button class="edit" onclick="editBill(${index})">Edit</button>
-                    <button class="remove" onclick="removeBill(${index})">Remove</button>
+                    <span>${bill.name} - £${bill.amount.toFixed(2)} - Due: ${bill.dueDate}</span>
+                    <button onclick="removeBill(${index})">Remove</button>
                 `;
                 billList.appendChild(billItem);
             });
-
             calculateTotal();
         }
 
-        function editBill(index) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            const bill = bills[index];
-
-            // Populate form fields with existing bill details
-            document.getElementById('bill-name').value = bill.name;
-            document.getElementById('bill-amount').value = bill.amount;
-            document.getElementById('bill-due-date').value = bill.dueDate;
-
-            editingIndex = index; // Set the editing index to save changes
-        }
-
-        function markAsPaid(index) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            
-            const bill = bills[index];
-            bill.paid = true;
-
-            const nextMonthBill = {
-                ...bill,
-                paid: false, // Reset paid status for the new bill
-                dueDate: getNextMonthDate(bill.dueDate) // Shift due date to next month
-            };
-
-            bills.push(nextMonthBill); // Add the next month's bill
-            localStorage.setItem('bills', JSON.stringify(bills));
-
-            displayBills();
-        }
-
-        function getNextMonthDate(currentDate) {
-            const date = new Date(currentDate);
-            date.setMonth(date.getMonth() + 1);
-            if (date.getDate() !== parseInt(currentDate.split('-')[2])) {
-                date.setDate(0); // Handle shorter months
-            }
-            return date.toISOString().split('T')[0];
-        }
-
+        // Remove Bill
         function removeBill(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.splice(index, 1);
@@ -218,14 +166,72 @@
             displayBills();
         }
 
-        function calculateTotal() {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            const total = bills.reduce((sum, bill) => sum + (bill.paid ? 0 : bill.amount), 0);
-            document.getElementById('total-amount').textContent = `Total: £${total.toFixed(2)}`;
+        // Event Listener for Adding Income
+        document.getElementById('income-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const incomeName = document.getElementById('income-name').value;
+            const incomeAmount = parseFloat(document.getElementById('income-amount').value);
+
+            if (isNaN(incomeAmount)) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            addIncome(incomeName, incomeAmount);
+            document.getElementById('income-form').reset();
+        });
+
+        // Add Income
+        function addIncome(name, amount) {
+            const incomeItem = { name, amount };
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.push(incomeItem);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            displayIncomes();
         }
 
-        // Display bills on page load
+        // Display Incomes
+        function displayIncomes() {
+            const moneyInList = document.getElementById('money-in-list');
+            moneyInList.innerHTML = '';
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.forEach((income, index) => {
+                const incomeItem = document.createElement('div');
+                incomeItem.className = 'income-item';
+                incomeItem.innerHTML = `
+                    <span>${income.name} - £${income.amount.toFixed(2)}</span>
+                    <button onclick="removeIncome(${index})">Remove</button>
+                `;
+                moneyInList.appendChild(incomeItem);
+            });
+            calculateTotal();
+        }
+
+        // Remove Income
+        function removeIncome(index) {
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.splice(index, 1);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            displayIncomes();
+        }
+
+        // Calculate Totals and Balance
+        function calculateTotal() {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+
+            const totalBills = bills.reduce((sum, bill) => sum + bill.amount, 0);
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+
+            document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
+            document.getElementById('total-income').textContent = `Total Income: £${totalIncome.toFixed(2)}`;
+            document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
+        }
+
+        // Display Bills and Incomes on Load
         displayBills();
+        displayIncomes();
     </script>
 </body>
 </html>
