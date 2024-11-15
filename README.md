@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            overflow-y: scroll; /* Enable vertical scrolling */
+            overflow-y: scroll;
         }
         .container {
             width: 350px;
@@ -18,7 +18,7 @@
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            margin: 20px auto; /* Center the container */
+            margin: 20px auto;
         }
         h2 {
             text-align: center;
@@ -60,7 +60,7 @@
             color: red;
         }
         .bill-item.paid span.amount {
-            color: green; /* Paid bills show the amount in green */
+            color: green;
         }
         .total-amount {
             margin-top: 20px;
@@ -83,7 +83,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Form for Adding Bills -->
         <form id="bill-form">
             <h2>Budget Tracker</h2>
             <h3>Add Bill</h3>
@@ -96,7 +95,6 @@
         <div class="bill-list" id="bill-list"></div>
         <div class="total-amount" id="total-amount">Total Bills: £0.00</div>
 
-        <!-- Form for Adding Income -->
         <form id="income-form">
             <h3>Add Monthly Income</h3>
             <input type="text" id="income-name" placeholder="Income Source" required>
@@ -108,7 +106,6 @@
         <div class="money-in-list" id="money-in-list"></div>
         <div class="total-amount" id="total-income">Total Income: £0.00</div>
 
-        <!-- Balance Section -->
         <div class="balance-section" id="balance-section">
             Remaining Balance: <span id="remaining-balance">£0.00</span>
         </div>
@@ -143,14 +140,6 @@
             const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
-            localStorage.setItem('bills', JSON.stringify(bills));
-            displayBills();
-        }
-
-        function updateBill(index, name, amount, dueDate) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            bills[index] = { ...bills[index], name, amount, dueDate }; // Update the bill details
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -174,31 +163,36 @@
             });
             calculateTotals();
         }
-
+    </script>
+</body>
+</html>
+    <script>
+        // Mark a Bill as Paid and Carry it Over to the Next Month
         function markAsPaid(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills[index].paid = true;
 
-            // Create a new bill for the next month with the same details
             const nextMonthBill = {
                 ...bills[index],
                 paid: false,
-                dueDate: getNextMonthDate(bills[index].dueDate) // Shift due date to the next month
+                dueDate: getNextMonthDate(bills[index].dueDate)
             };
-            bills.push(nextMonthBill); // Add the next month's bill
+            bills.push(nextMonthBill);
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
 
+        // Calculate Next Month Date for Recurring Bills
         function getNextMonthDate(currentDate) {
             const date = new Date(currentDate);
-            date.setMonth(date.getMonth() + 1); // Move to the next month
+            date.setMonth(date.getMonth() + 1);
             if (date.getDate() !== parseInt(currentDate.split('-')[2])) {
-                date.setDate(0); // Adjust for shorter months
+                date.setDate(0);
             }
             return date.toISOString().split('T')[0];
         }
 
+        // Edit a Bill
         function editBill(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             const bill = bills[index];
@@ -210,6 +204,7 @@
             editingIndex = index;
         }
 
+        // Remove a Bill
         function removeBill(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.splice(index, 1);
@@ -217,6 +212,7 @@
             displayBills();
         }
 
+        // Event Listener for Adding Income
         document.getElementById('income-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -233,4 +229,57 @@
             document.getElementById('income-form').reset();
         });
 
-        function
+        // Function to Add Income
+        function addIncome(name, amount, month) {
+            const incomeItem = { name, amount, month };
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.push(incomeItem);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            displayIncomes();
+        }
+
+        // Display Incomes
+        function displayIncomes() {
+            const moneyInList = document.getElementById('money-in-list');
+            moneyInList.innerHTML = '';
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.forEach((income, index) => {
+                const incomeItem = document.createElement('div');
+                incomeItem.className = 'income-item';
+                incomeItem.innerHTML = `
+                    <span>${income.name} - £${income.amount.toFixed(2)} (${income.month})</span>
+                    <button onclick="removeIncome(${index})">Remove</button>
+                `;
+                moneyInList.appendChild(incomeItem);
+            });
+            calculateTotals();
+        }
+
+        // Remove Income
+        function removeIncome(index) {
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+            incomes.splice(index, 1);
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+            displayIncomes();
+        }
+
+        // Calculate Totals and Remaining Balance
+        function calculateTotals() {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+
+            const totalBills = bills.reduce((sum, bill) => sum + (bill.paid ? 0 : bill.amount), 0);
+            const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM)
+            const totalIncome = incomes
+                .filter(income => income.month === currentMonth)
+                .reduce((sum, income) => sum + income.amount, 0);
+
+            document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
+            document.getElementById('total-income').textContent = `Total Income (This Month): £${totalIncome.toFixed(2)}`;
+            document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
+        }
+
+        // Initialize the display on page load
+        displayBills();
+        displayIncomes();
+    </script>
