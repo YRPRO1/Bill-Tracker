@@ -134,6 +134,7 @@
             const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
+            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort bills by date
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
