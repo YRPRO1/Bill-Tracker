@@ -7,12 +7,10 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
             margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            overflow-y: scroll; /* Enable vertical scrolling */
         }
         .container {
             width: 350px;
@@ -20,6 +18,7 @@
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
+            margin: 20px auto; /* Center the container */
         }
         h1, h2 {
             text-align: center;
@@ -110,38 +109,31 @@
     </div>
 
     <script>
-        let editingIndex = null; // Track which bill is being edited
+        let editingIndex = null;
 
-        // Event Listener for Adding Bills
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const billName = document.getElementById('bill-name').value;
             const billAmount = parseFloat(document.getElementById('bill-amount').value);
             const billDueDate = document.getElementById('bill-due-date').value;
-
             if (isNaN(billAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
-
             addBill(billName, billAmount, billDueDate);
-
             document.getElementById('bill-form').reset();
-            editingIndex = null; // Reset editing index after saving
+            editingIndex = null;
         });
 
-        // Add Bill
         function addBill(name, amount, dueDate) {
             const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
+            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
 
-        // Display Bills
         function displayBills() {
             const billList = document.getElementById('bill-list');
             billList.innerHTML = '';
@@ -158,7 +150,6 @@
             calculateTotal();
         }
 
-        // Remove Bill
         function removeBill(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.splice(index, 1);
@@ -166,23 +157,18 @@
             displayBills();
         }
 
-        // Event Listener for Adding Income
         document.getElementById('income-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const incomeName = document.getElementById('income-name').value;
             const incomeAmount = parseFloat(document.getElementById('income-amount').value);
-
             if (isNaN(incomeAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
-
             addIncome(incomeName, incomeAmount);
             document.getElementById('income-form').reset();
         });
 
-        // Add Income
         function addIncome(name, amount) {
             const incomeItem = { name, amount };
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
@@ -191,7 +177,6 @@
             displayIncomes();
         }
 
-        // Display Incomes
         function displayIncomes() {
             const moneyInList = document.getElementById('money-in-list');
             moneyInList.innerHTML = '';
@@ -208,7 +193,6 @@
             calculateTotal();
         }
 
-        // Remove Income
         function removeIncome(index) {
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
             incomes.splice(index, 1);
@@ -216,20 +200,16 @@
             displayIncomes();
         }
 
-        // Calculate Totals and Balance
         function calculateTotal() {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-
             const totalBills = bills.reduce((sum, bill) => sum + bill.amount, 0);
             const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
-
             document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
             document.getElementById('total-income').textContent = `Total Income: £${totalIncome.toFixed(2)}`;
             document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
         }
 
-        // Display Bills and Incomes on Load
         displayBills();
         displayIncomes();
     </script>
