@@ -39,12 +39,12 @@
         }
         .checkbox-group {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             margin-top: 10px;
-            padding: 5px 0;
         }
         .checkbox-group label {
-            font-size: 14px;
+            font-size: 16px;
+            margin: 5px 0;
         }
         .bill-list, .money-in-list {
             margin-top: 20px;
@@ -121,7 +121,7 @@
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
 
-            <!-- Checkboxes for Payment Type -->
+            <!-- Clear Checkboxes for Payment Type -->
             <div class="checkbox-group">
                 <label><input type="checkbox" id="one-off" onclick="toggleCheckbox('one-off')"> One-off Payment</label>
                 <label><input type="checkbox" id="recurring" onclick="toggleCheckbox('recurring')"> Recurring Payment</label>
