@@ -121,7 +121,7 @@
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
 
-            <!-- Clear Checkboxes for Payment Type -->
+            <!-- Checkboxes for Payment Type -->
             <div class="checkbox-group">
                 <label><input type="checkbox" id="one-off" onclick="toggleCheckbox('one-off')"> One-off Payment</label>
                 <label><input type="checkbox" id="recurring" onclick="toggleCheckbox('recurring')"> Recurring Payment</label>
@@ -212,9 +212,36 @@
 
         function markAsPaid(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            bills[index].paid = true;
+            const bill = bills[index];
+
+            if (bill.oneOff) {
+                // Remove the one-off bill once marked as paid
+                bills.splice(index, 1);
+            } else if (bill.recurring) {
+                // Mark it as paid and carry over to the next month
+                bill.paid = true;
+                const nextMonthBill = {
+                    ...bill,
+                    paid: false,
+                    dueDate: getNextMonthDate(bill.dueDate)
+                };
+                bills.push(nextMonthBill);
+            } else {
+                // If no specific type, just mark as paid
+                bill.paid = true;
+            }
+
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
+        }
+
+        function getNextMonthDate(currentDate) {
+            const date = new Date(currentDate);
+            date.setMonth(date.getMonth() + 1);
+            if (date.getDate() !== parseInt(currentDate.split('-')[2])) {
+                date.setDate(0);
+            }
+            return date.toISOString().split('T')[0];
         }
 
         function editBill(index) {
