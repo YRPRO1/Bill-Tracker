@@ -218,14 +218,9 @@
                 // Remove the one-off bill once marked as paid
                 bills.splice(index, 1);
             } else if (bill.recurring) {
-                // Mark it as paid and carry over to the next month
-                bill.paid = true;
-                const nextMonthBill = {
-                    ...bill,
-                    paid: false,
-                    dueDate: getNextMonthDate(bill.dueDate)
-                };
-                bills.push(nextMonthBill);
+                // Update the due date to the next month and mark as unpaid for recurring payments
+                bill.paid = false;
+                bill.dueDate = getNextMonthDate(bill.dueDate);
             } else {
                 // If no specific type, just mark as paid
                 bill.paid = true;
