@@ -65,6 +65,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
         }
         .bill-item span.amount {
             color: red;
@@ -88,6 +89,15 @@
         .balance-section span {
             font-size: 18px;
             font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .action-buttons button {
+            font-size: 12px;
+            padding: 5px;
         }
     </style>
 </head>
@@ -179,9 +189,11 @@
                     <span>${bill.name}</span>
                     <span class="amount">£${bill.amount.toFixed(2)}</span>
                     <span>${bill.dueDate}</span>
-                    <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
-                    <button onclick="editBill(${index})">Edit</button>
-                    <button onclick="removeBill(${index})">Remove</button>
+                    <div class="action-buttons">
+                        <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
+                        <button onclick="editBill(${index})">Edit</button>
+                        <button onclick="removeBill(${index})">Remove</button>
+                    </div>
                 `;
                 billList.appendChild(billItem);
             });
