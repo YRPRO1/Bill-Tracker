@@ -114,6 +114,8 @@
     </div>
 
     <script>
+        let editingIndex = null;
+
         // Bills Management
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -126,8 +128,14 @@
                 return;
             }
 
-            addBill(billName, billAmount, billDueDate);
+            if (editingIndex !== null) {
+                updateBill(editingIndex, billName, billAmount, billDueDate);
+            } else {
+                addBill(billName, billAmount, billDueDate);
+            }
+
             document.getElementById('bill-form').reset();
+            editingIndex = null;
         });
 
         function addBill(name, amount, dueDate) {
@@ -135,6 +143,14 @@
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
             bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort bills by date
+            localStorage.setItem('bills', JSON.stringify(bills));
+            displayBills();
+        }
+
+        function updateBill(index, name, amount, dueDate) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            bills[index] = { name, amount, dueDate, paid: bills[index].paid }; // Retain 'paid' status
+            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Re-sort after editing
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -150,11 +166,31 @@
                     <span>${bill.name}</span>
                     <span class="amount">£${bill.amount.toFixed(2)}</span>
                     <span>${bill.dueDate}</span>
+                    <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
+                    <button onclick="editBill(${index})">Edit</button>
                     <button onclick="removeBill(${index})">Remove</button>
                 `;
                 billList.appendChild(billItem);
             });
             calculateTotals();
+        }
+
+        function markAsPaid(index) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            bills[index].paid = true;
+            localStorage.setItem('bills', JSON.stringify(bills));
+            displayBills();
+        }
+
+        function editBill(index) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            const bill = bills[index];
+
+            document.getElementById('bill-name').value = bill.name;
+            document.getElementById('bill-amount').value = bill.amount;
+            document.getElementById('bill-due-date').value = bill.dueDate;
+
+            editingIndex = index;
         }
 
         function removeBill(index) {
