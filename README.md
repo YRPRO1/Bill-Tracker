@@ -20,7 +20,7 @@
             border-radius: 8px;
             margin: 20px auto; /* Center the container */
         }
-        h1, h2 {
+        h2 {
             text-align: center;
         }
         form {
@@ -77,8 +77,6 @@
 </head>
 <body>
     <div class="container">
-        <h1>Budget Tracker</h1>
-
         <!-- Form for Adding Bills -->
         <form id="bill-form">
             <h2>Add Bill</h2>
@@ -93,9 +91,10 @@
 
         <!-- Form for Adding Income -->
         <form id="income-form">
-            <h2>Add Income</h2>
+            <h2>Add Monthly Income</h2>
             <input type="text" id="income-name" placeholder="Income Source" required>
             <input type="number" id="income-amount" placeholder="Amount" required step="0.01">
+            <input type="month" id="income-month" required>
             <button type="submit">Add Income</button>
         </form>
 
@@ -109,27 +108,27 @@
     </div>
 
     <script>
-        let editingIndex = null;
-
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
+
             const billName = document.getElementById('bill-name').value;
             const billAmount = parseFloat(document.getElementById('bill-amount').value);
             const billDueDate = document.getElementById('bill-due-date').value;
+
             if (isNaN(billAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
+
             addBill(billName, billAmount, billDueDate);
             document.getElementById('bill-form').reset();
-            editingIndex = null;
         });
 
         function addBill(name, amount, dueDate) {
-            const billItem = { name, amount, dueDate, paid: false };
+            const billItem = { name, amount, dueDate };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -147,7 +146,7 @@
                 `;
                 billList.appendChild(billItem);
             });
-            calculateTotal();
+            calculateTotals();
         }
 
         function removeBill(index) {
@@ -159,18 +158,22 @@
 
         document.getElementById('income-form').addEventListener('submit', function(event) {
             event.preventDefault();
+
             const incomeName = document.getElementById('income-name').value;
             const incomeAmount = parseFloat(document.getElementById('income-amount').value);
+            const incomeMonth = document.getElementById('income-month').value;
+
             if (isNaN(incomeAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
-            addIncome(incomeName, incomeAmount);
+
+            addIncome(incomeName, incomeAmount, incomeMonth);
             document.getElementById('income-form').reset();
         });
 
-        function addIncome(name, amount) {
-            const incomeItem = { name, amount };
+        function addIncome(name, amount, month) {
+            const incomeItem = { name, amount, month };
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
             incomes.push(incomeItem);
             localStorage.setItem('incomes', JSON.stringify(incomes));
@@ -185,12 +188,12 @@
                 const incomeItem = document.createElement('div');
                 incomeItem.className = 'income-item';
                 incomeItem.innerHTML = `
-                    <span>${income.name} - £${income.amount.toFixed(2)}</span>
+                    <span>${income.name} - £${income.amount.toFixed(2)} (${income.month})</span>
                     <button onclick="removeIncome(${index})">Remove</button>
                 `;
                 moneyInList.appendChild(incomeItem);
             });
-            calculateTotal();
+            calculateTotals();
         }
 
         function removeIncome(index) {
@@ -200,13 +203,18 @@
             displayIncomes();
         }
 
-        function calculateTotal() {
+        function calculateTotals() {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+
             const totalBills = bills.reduce((sum, bill) => sum + bill.amount, 0);
-            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+            const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM)
+            const totalIncome = incomes
+                .filter(income => income.month === currentMonth)
+                .reduce((sum, income) => sum + income.amount, 0);
+
             document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
-            document.getElementById('total-income').textContent = `Total Income: £${totalIncome.toFixed(2)}`;
+            document.getElementById('total-income').textContent = `Total Income (This Month): £${totalIncome.toFixed(2)}`;
             document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
         }
 
