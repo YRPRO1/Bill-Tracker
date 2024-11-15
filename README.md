@@ -59,6 +59,9 @@
         .bill-item span.amount {
             color: red;
         }
+        .bill-item.paid span.amount {
+            color: green; /* Paid bills show the amount in green */
+        }
         .total-amount {
             margin-top: 20px;
             text-align: center;
@@ -112,6 +115,8 @@
     </div>
 
     <script>
+        let editingIndex = null;
+
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -124,15 +129,28 @@
                 return;
             }
 
-            addBill(billName, billAmount, billDueDate);
+            if (editingIndex !== null) {
+                updateBill(editingIndex, billName, billAmount, billDueDate);
+            } else {
+                addBill(billName, billAmount, billDueDate);
+            }
+
             document.getElementById('bill-form').reset();
+            editingIndex = null;
         });
 
         function addBill(name, amount, dueDate) {
-            const billItem = { name, amount, dueDate };
+            const billItem = { name, amount, dueDate, paid: false };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
             bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort by due date
+            localStorage.setItem('bills', JSON.stringify(bills));
+            displayBills();
+        }
+
+        function updateBill(index, name, amount, dueDate) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            bills[index] = { ...bills[index], name, amount, dueDate }; // Update the bill details
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -143,16 +161,53 @@
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.forEach((bill, index) => {
                 const billItem = document.createElement('div');
-                billItem.className = 'bill-item';
+                billItem.className = 'bill-item' + (bill.paid ? ' paid' : '');
                 billItem.innerHTML = `
                     <span>${bill.name}</span>
                     <span class="amount">£${bill.amount.toFixed(2)}</span>
                     <span>${bill.dueDate}</span>
+                    <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
+                    <button onclick="editBill(${index})">Edit</button>
                     <button onclick="removeBill(${index})">Remove</button>
                 `;
                 billList.appendChild(billItem);
             });
             calculateTotals();
+        }
+
+        function markAsPaid(index) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            bills[index].paid = true;
+
+            // Create a new bill for the next month with the same details
+            const nextMonthBill = {
+                ...bills[index],
+                paid: false,
+                dueDate: getNextMonthDate(bills[index].dueDate) // Shift due date to the next month
+            };
+            bills.push(nextMonthBill); // Add the next month's bill
+            localStorage.setItem('bills', JSON.stringify(bills));
+            displayBills();
+        }
+
+        function getNextMonthDate(currentDate) {
+            const date = new Date(currentDate);
+            date.setMonth(date.getMonth() + 1); // Move to the next month
+            if (date.getDate() !== parseInt(currentDate.split('-')[2])) {
+                date.setDate(0); // Adjust for shorter months
+            }
+            return date.toISOString().split('T')[0];
+        }
+
+        function editBill(index) {
+            let bills = JSON.parse(localStorage.getItem('bills')) || [];
+            const bill = bills[index];
+
+            document.getElementById('bill-name').value = bill.name;
+            document.getElementById('bill-amount').value = bill.amount;
+            document.getElementById('bill-due-date').value = bill.dueDate;
+
+            editingIndex = index;
         }
 
         function removeBill(index) {
@@ -170,62 +225,4 @@
             const incomeMonth = document.getElementById('income-month').value;
 
             if (isNaN(incomeAmount)) {
-                alert("Please enter a valid amount.");
-                return;
-            }
-
-            addIncome(incomeName, incomeAmount, incomeMonth);
-            document.getElementById('income-form').reset();
-        });
-
-        function addIncome(name, amount, month) {
-            const incomeItem = { name, amount, month };
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-            incomes.push(incomeItem);
-            localStorage.setItem('incomes', JSON.stringify(incomes));
-            displayIncomes();
-        }
-
-        function displayIncomes() {
-            const moneyInList = document.getElementById('money-in-list');
-            moneyInList.innerHTML = '';
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-            incomes.forEach((income, index) => {
-                const incomeItem = document.createElement('div');
-                incomeItem.className = 'income-item';
-                incomeItem.innerHTML = `
-                    <span>${income.name} - £${income.amount.toFixed(2)} (${income.month})</span>
-                    <button onclick="removeIncome(${index})">Remove</button>
-                `;
-                moneyInList.appendChild(incomeItem);
-            });
-            calculateTotals();
-        }
-
-        function removeIncome(index) {
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-            incomes.splice(index, 1);
-            localStorage.setItem('incomes', JSON.stringify(incomes));
-            displayIncomes();
-        }
-
-        function calculateTotals() {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-
-            const totalBills = bills.reduce((sum, bill) => sum + bill.amount, 0);
-            const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM)
-            const totalIncome = incomes
-                .filter(income => income.month === currentMonth)
-                .reduce((sum, income) => sum + income.amount, 0);
-
-            document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
-            document.getElementById('total-income').textContent = `Total Income (This Month): £${totalIncome.toFixed(2)}`;
-            document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
-        }
-
-        displayBills();
-        displayIncomes();
-    </script>
-</body>
-</html>
+                alert("Please enter a valid amount
