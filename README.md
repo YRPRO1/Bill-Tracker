@@ -83,6 +83,7 @@
 </head>
 <body>
     <div class="container">
+        <!-- Bill Form -->
         <form id="bill-form">
             <h2>Budget Tracker</h2>
             <h3>Add Bill</h3>
@@ -95,28 +96,27 @@
         <div class="bill-list" id="bill-list"></div>
         <div class="total-amount" id="total-amount">Total Bills: £0.00</div>
 
+        <!-- Income Form -->
         <form id="income-form">
-            <h3>Add Monthly Income</h3>
+            <h3>Add Income</h3>
             <input type="text" id="income-name" placeholder="Income Source" required>
             <input type="number" id="income-amount" placeholder="Amount" required step="0.01">
-            <input type="month" id="income-month" required>
             <button type="submit">Add Income</button>
         </form>
 
         <div class="money-in-list" id="money-in-list"></div>
         <div class="total-amount" id="total-income">Total Income: £0.00</div>
 
+        <!-- Balance Section -->
         <div class="balance-section" id="balance-section">
             Remaining Balance: <span id="remaining-balance">£0.00</span>
         </div>
     </div>
 
     <script>
-        let editingIndex = null;
-
+        // Bills Management
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const billName = document.getElementById('bill-name').value;
             const billAmount = parseFloat(document.getElementById('bill-amount').value);
             const billDueDate = document.getElementById('bill-due-date').value;
@@ -126,14 +126,8 @@
                 return;
             }
 
-            if (editingIndex !== null) {
-                updateBill(editingIndex, billName, billAmount, billDueDate);
-            } else {
-                addBill(billName, billAmount, billDueDate);
-            }
-
+            addBill(billName, billAmount, billDueDate);
             document.getElementById('bill-form').reset();
-            editingIndex = null;
         });
 
         function addBill(name, amount, dueDate) {
@@ -155,55 +149,13 @@
                     <span>${bill.name}</span>
                     <span class="amount">£${bill.amount.toFixed(2)}</span>
                     <span>${bill.dueDate}</span>
-                    <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
-                    <button onclick="editBill(${index})">Edit</button>
                     <button onclick="removeBill(${index})">Remove</button>
                 `;
                 billList.appendChild(billItem);
             });
             calculateTotals();
         }
-    </script>
-</body>
-    <script>
-        // Mark a Bill as Paid and Carry it Over to the Next Month
-        function markAsPaid(index) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            bills[index].paid = true;
 
-            const nextMonthBill = {
-                ...bills[index],
-                paid: false,
-                dueDate: getNextMonthDate(bills[index].dueDate)
-            };
-            bills.push(nextMonthBill);
-            localStorage.setItem('bills', JSON.stringify(bills));
-            displayBills();
-        }
-
-        // Calculate Next Month Date for Recurring Bills
-        function getNextMonthDate(currentDate) {
-            const date = new Date(currentDate);
-            date.setMonth(date.getMonth() + 1);
-            if (date.getDate() !== parseInt(currentDate.split('-')[2])) {
-                date.setDate(0);
-            }
-            return date.toISOString().split('T')[0];
-        }
-
-        // Edit a Bill
-        function editBill(index) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            const bill = bills[index];
-
-            document.getElementById('bill-name').value = bill.name;
-            document.getElementById('bill-amount').value = bill.amount;
-            document.getElementById('bill-due-date').value = bill.dueDate;
-
-            editingIndex = index;
-        }
-
-        // Remove a Bill
         function removeBill(index) {
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.splice(index, 1);
@@ -211,33 +163,29 @@
             displayBills();
         }
 
-        // Event Listener for Adding Income
+        // Income Management
         document.getElementById('income-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const incomeName = document.getElementById('income-name').value;
             const incomeAmount = parseFloat(document.getElementById('income-amount').value);
-            const incomeMonth = document.getElementById('income-month').value;
 
             if (isNaN(incomeAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
 
-            addIncome(incomeName, incomeAmount, incomeMonth);
+            addIncome(incomeName, incomeAmount);
             document.getElementById('income-form').reset();
         });
 
-        // Function to Add Income
-        function addIncome(name, amount, month) {
-            const incomeItem = { name, amount, month };
+        function addIncome(name, amount) {
+            const incomeItem = { name, amount };
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
             incomes.push(incomeItem);
             localStorage.setItem('incomes', JSON.stringify(incomes));
             displayIncomes();
         }
 
-        // Display Incomes
         function displayIncomes() {
             const moneyInList = document.getElementById('money-in-list');
             moneyInList.innerHTML = '';
@@ -246,7 +194,7 @@
                 const incomeItem = document.createElement('div');
                 incomeItem.className = 'income-item';
                 incomeItem.innerHTML = `
-                    <span>${income.name} - £${income.amount.toFixed(2)} (${income.month})</span>
+                    <span>${income.name} - £${income.amount.toFixed(2)}</span>
                     <button onclick="removeIncome(${index})">Remove</button>
                 `;
                 moneyInList.appendChild(incomeItem);
@@ -254,7 +202,6 @@
             calculateTotals();
         }
 
-        // Remove Income
         function removeIncome(index) {
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
             incomes.splice(index, 1);
@@ -267,18 +214,17 @@
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
 
-            const totalBills = bills.reduce((sum, bill) => sum + (bill.paid ? 0 : bill.amount), 0);
-            const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM)
-            const totalIncome = incomes
-                .filter(income => income.month === currentMonth)
-                .reduce((sum, income) => sum + income.amount, 0);
+            const totalBills = bills.reduce((sum, bill) => sum + (!bill.paid ? bill.amount : 0), 0);
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
 
             document.getElementById('total-amount').textContent = `Total Bills: £${totalBills.toFixed(2)}`;
-            document.getElementById('total-income').textContent = `Total Income (This Month): £${totalIncome.toFixed(2)}`;
+            document.getElementById('total-income').textContent = `Total Income: £${totalIncome.toFixed(2)}`;
             document.getElementById('remaining-balance').textContent = `£${(totalIncome - totalBills).toFixed(2)}`;
         }
 
-        // Initialize the display on page load
+        // Initialize
         displayBills();
         displayIncomes();
     </script>
+</body>
+</html>
