@@ -72,6 +72,9 @@
         .bill-item.paid span.amount {
             color: green;
         }
+        .bill-item.paid {
+            background-color: #e0ffe0;
+        }
         .total-amount {
             margin-top: 20px;
             text-align: center;
@@ -226,6 +229,7 @@
                 bill.paid = true;
             }
 
+            bills[index] = bill; // Update the current bill in the list
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
