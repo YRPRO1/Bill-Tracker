@@ -37,6 +37,14 @@
             border: none;
             cursor: pointer;
         }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .checkbox-group label {
+            margin-right: 10px;
+        }
         .bill-list, .money-in-list {
             margin-top: 20px;
             max-height: 300px;
@@ -90,6 +98,13 @@
             <input type="text" id="bill-name" placeholder="Bill Name" required>
             <input type="number" id="bill-amount" placeholder="Amount" required step="0.01">
             <input type="date" id="bill-due-date" required>
+
+            <!-- Checkboxes for Payment Type -->
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="one-off" onclick="toggleCheckbox('one-off')"> One-off Payment</label>
+                <label><input type="checkbox" id="recurring" onclick="toggleCheckbox('recurring')"> Recurring Payment</label>
+            </div>
+
             <button type="submit">Add Bill</button>
         </form>
 
@@ -116,41 +131,37 @@
     <script>
         let editingIndex = null;
 
+        function toggleCheckbox(id) {
+            if (id === 'one-off') {
+                document.getElementById('recurring').checked = false;
+            } else {
+                document.getElementById('one-off').checked = false;
+            }
+        }
+
         // Bills Management
         document.getElementById('bill-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const billName = document.getElementById('bill-name').value;
             const billAmount = parseFloat(document.getElementById('bill-amount').value);
             const billDueDate = document.getElementById('bill-due-date').value;
+            const isOneOff = document.getElementById('one-off').checked;
+            const isRecurring = document.getElementById('recurring').checked;
 
             if (isNaN(billAmount)) {
                 alert("Please enter a valid amount.");
                 return;
             }
 
-            if (editingIndex !== null) {
-                updateBill(editingIndex, billName, billAmount, billDueDate);
-            } else {
-                addBill(billName, billAmount, billDueDate);
-            }
-
+            addBill(billName, billAmount, billDueDate, isOneOff, isRecurring);
             document.getElementById('bill-form').reset();
-            editingIndex = null;
         });
 
-        function addBill(name, amount, dueDate) {
-            const billItem = { name, amount, dueDate, paid: false };
+        function addBill(name, amount, dueDate, oneOff, recurring) {
+            const billItem = { name, amount, dueDate, paid: false, oneOff, recurring };
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             bills.push(billItem);
             bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Sort bills by date
-            localStorage.setItem('bills', JSON.stringify(bills));
-            displayBills();
-        }
-
-        function updateBill(index, name, amount, dueDate) {
-            let bills = JSON.parse(localStorage.getItem('bills')) || [];
-            bills[index] = { name, amount, dueDate, paid: bills[index].paid }; // Retain 'paid' status
-            bills.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Re-sort after editing
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
@@ -189,6 +200,8 @@
             document.getElementById('bill-name').value = bill.name;
             document.getElementById('bill-amount').value = bill.amount;
             document.getElementById('bill-due-date').value = bill.dueDate;
+            document.getElementById('one-off').checked = bill.oneOff;
+            document.getElementById('recurring').checked = bill.recurring;
 
             editingIndex = index;
         }
