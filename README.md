@@ -40,12 +40,11 @@
         .checkbox-group {
             display: flex;
             justify-content: space-between;
-            margin: 5px 0;
+            margin-top: 10px;
+            padding: 5px 0;
         }
         .checkbox-group label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
+            font-size: 14px;
         }
         .bill-list, .money-in-list {
             margin-top: 20px;
@@ -98,6 +97,17 @@
         .action-buttons button {
             font-size: 12px;
             padding: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .action-buttons .remove {
+            background-color: #dc3545;
+        }
+        .action-buttons .paid {
+            background-color: #007bff;
         }
     </style>
 </head>
@@ -190,9 +200,9 @@
                     <span class="amount">£${bill.amount.toFixed(2)}</span>
                     <span>${bill.dueDate}</span>
                     <div class="action-buttons">
-                        <button onclick="markAsPaid(${index})" ${bill.paid ? 'disabled' : ''}>${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
-                        <button onclick="editBill(${index})">Edit</button>
-                        <button onclick="removeBill(${index})">Remove</button>
+                        <button onclick="markAsPaid(${index})" class="paid">${bill.paid ? 'Paid' : 'Mark as Paid'}</button>
+                        <button onclick="editBill(${index})" class="edit">Edit</button>
+                        <button onclick="removeBill(${index})" class="remove">Remove</button>
                     </div>
                 `;
                 billList.appendChild(billItem);
