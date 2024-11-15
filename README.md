@@ -217,19 +217,23 @@
             let bills = JSON.parse(localStorage.getItem('bills')) || [];
             const bill = bills[index];
 
+            // Mark the bill as paid and turn it green
+            bill.paid = true;
+
             if (bill.oneOff) {
                 // Remove the one-off bill once marked as paid
                 bills.splice(index, 1);
             } else if (bill.recurring) {
-                // Update the due date to the next month and mark as unpaid for recurring payments
-                bill.paid = false;
-                bill.dueDate = getNextMonthDate(bill.dueDate);
-            } else {
-                // If no specific type, just mark as paid
-                bill.paid = true;
+                // For recurring bills, mark as paid and set due date to the next month
+                const nextMonthBill = {
+                    ...bill,
+                    paid: false, // Next month should be unpaid
+                    dueDate: getNextMonthDate(bill.dueDate)
+                };
+                bills[index] = bill; // Update current bill as paid
+                bills.push(nextMonthBill); // Add next month’s bill
             }
 
-            bills[index] = bill; // Update the current bill in the list
             localStorage.setItem('bills', JSON.stringify(bills));
             displayBills();
         }
